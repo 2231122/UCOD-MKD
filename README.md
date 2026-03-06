@@ -2,4 +2,4 @@
 
 # We will open-source the code as soon as possible.
 
-![Framework](Fig/Framework.jpg)
+![Framework](Fig/Freamwork.jpg)
