@@ -1,0 +1,18 @@
+CCOD : Mask3 + SKD => L1&L2不加背景权重
+
+是不是因为 有效样本被稀释的原因？ 
+
+Test:
+BatchSize=16 + count_sample!!!
+
+
+没什么吊用！！！
+
+不能够使用P-Mask很严重！！！
+
+
+
+
+Now: 1020
+
+Now: 1200
