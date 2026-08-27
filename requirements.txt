@@ -1,0 +1,13 @@
+torch
+torchvision
+transformers>=4.49.0
+accelerate
+numpy
+requests
+pillow
+av
+packaging
+opencv-python
+scikit-image
+timm
+tensorboardX
