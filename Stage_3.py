@@ -15,7 +15,7 @@ project_root = Path(__file__).resolve().parent
 CANDIDATE_PATTERN = re.compile(
     r"^(?P<image>.+)_box(?P<box>\d+)_candidate(?P<candidate>\d+)_iou(?P<score>[0-9.]+)\.png$"
 )
-QUALITY_ORDER = {"Low": 0, "Medium": 1, "High": 2}
+QUALITY_ORDER = {"Low": 0, "Normal": 1, "High": 2}
 
 
 def parse_args():
@@ -119,7 +119,7 @@ def tier_box(candidates, args):
         edge_count = edge_truncation_count(selected_mask, args.edge_margin, args.edge_pixels)
         component_count = fragmentation_count(selected_mask)
         if edge_count <= args.max_edge_touch and component_count <= args.max_components:
-            tier = "Medium"
+            tier = "Normal"
         else:
             tier = "Low"
 
@@ -169,7 +169,7 @@ def main():
             print(f"[skip] {image_name}: selected box mask sizes do not match")
             continue
 
-        # A composite containing any Low box is Low; otherwise Medium takes precedence over High.
+        # A composite containing any Low box is Low; otherwise Normal takes precedence over High.
         image_tier = min((record["tier"] for record in box_records), key=QUALITY_ORDER.get)
         composite_mask = np.logical_or.reduce(selected_masks).astype(np.uint8) * 255
         cv2.imwrite(str(args.output_dir / image_tier / f"{image_name}.png"), composite_mask)

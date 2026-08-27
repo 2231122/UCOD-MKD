@@ -16,7 +16,8 @@ ROOT = Path(__file__).resolve().parent
 CANDIDATE_PATTERN = re.compile(
     r"^(?P<image>.+)_box(?P<box>\d+)_candidate(?P<candidate>\d+)_iou[0-9.]+\.png$"
 )
-QUALITY_VALUE = {"Low": 0, "Medium": 1, "High": 2}
+QUALITY_VALUE = {"Low": 0, "Normal": 1, "High": 2}
+LEGACY_TIER_NAMES = {"Medium": "Normal"}
 
 
 def parse_args():
@@ -25,7 +26,7 @@ def parse_args():
     parser.add_argument("--json-dir", type=Path, default=ROOT / "Json_case1")
     parser.add_argument("--multi-mask-dir", type=Path, default=ROOT / "SAM_Masks" / "multi_mask")
     parser.add_argument("--quality-dir", type=Path, default=ROOT / "Quality_Masks")
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "Stage4_Data")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "Stage_4_Data")
     parser.add_argument("--image-mode", choices=("link", "copy", "none"), default="link",
                         help="How to place source images under Stage4_Data/train/Imgs.")
     parser.add_argument("--gaussian-sigma", type=float, default=1.0,
@@ -106,7 +107,7 @@ def main():
     output = args.output_dir
     directories = {
         name: output / "train" / name
-        for name in ("Imgs", "Pseudo_Label", "Box_Background", "Pixel_Weight", "Candidate_0", "Candidate_1", "Candidate_2")
+        for name in ("Images", "Pseudo_Labels", "Reliable_Background", "Confidence_Maps")
     }
     for path in directories.values():
         path.mkdir(parents=True, exist_ok=True)
@@ -124,9 +125,10 @@ def main():
         if not quality:
             print(f"[skip] {stem}: absent from Stage 3 manifest")
             continue
-        tier = quality["tier"]
+        source_tier = quality["tier"]
+        tier = LEGACY_TIER_NAMES.get(source_tier, source_tier)
         image_path = find_image(args.image_dir, stem)
-        final_path = args.quality_dir / tier / f"{stem}.png"
+        final_path = args.quality_dir / source_tier / f"{stem}.png"
         if image_path is None or not final_path.exists():
             print(f"[skip] {stem}: source image or final mask is missing")
             continue
@@ -160,30 +162,34 @@ def main():
         for x0, y0, x1, y1 in boxes:
             box_background[y0:y1, x0:x1] = 0
 
+        candidate_directory = output / "train" / "SAM_Candidates"
+        candidate_targets = [candidate_directory / f"Candidate_{index}" / f"{stem}.png" for index in (1, 2, 3)]
+        for path in (candidate_directory / "Candidate_1", candidate_directory / "Candidate_2", candidate_directory / "Candidate_3"):
+            path.mkdir(parents=True, exist_ok=True)
         targets = [
-            directories["Pseudo_Label"] / f"{stem}.png",
-            directories["Box_Background"] / f"{stem}.png",
-            directories["Pixel_Weight"] / f"{stem}.png",
-            *(directories[f"Candidate_{index}"] / f"{stem}.png" for index in range(3)),
+            directories["Pseudo_Labels"] / f"{stem}.png",
+            directories["Reliable_Background"] / f"{stem}.png",
+            directories["Confidence_Maps"] / f"{stem}.png",
+            *candidate_targets,
         ]
         if not args.overwrite and any(path.exists() for path in targets):
             print(f"[skip] {stem}: output exists")
             continue
-        copy_or_link(image_path, directories["Imgs"] / f"{stem}{image_path.suffix.lower()}", args.image_mode)
+        copy_or_link(image_path, directories["Images"] / f"{stem}{image_path.suffix.lower()}", args.image_mode)
         write_image(targets[0], pseudo)
         write_image(targets[1], box_background)
         write_image(targets[2], np.rint(pixel_weight * 255).astype(np.uint8))
-        for index, mask in enumerate(candidate_masks):
-            write_image(directories[f"Candidate_{index}"] / f"{stem}.png", mask.astype(np.uint8) * 255)
+        for target, mask in zip(candidate_targets, candidate_masks):
+            write_image(target, mask.astype(np.uint8) * 255)
         records.append({
             "image": stem,
             "source_image": image_path.name,
             "tier": tier,
             "tier_value": QUALITY_VALUE[tier],
             "bbox_count": len(boxes),
-            "pseudo_label": f"Pseudo_Label/{stem}.png",
-            "box_background": f"Box_Background/{stem}.png",
-            "pixel_weight": f"Pixel_Weight/{stem}.png",
+            "pseudo_label": f"Pseudo_Labels/{stem}.png",
+            "reliable_background": f"Reliable_Background/{stem}.png",
+            "confidence_map": f"Confidence_Maps/{stem}.png",
         })
         print(f"[done] {stem}: {tier}, {len(boxes)} box(es)")
 

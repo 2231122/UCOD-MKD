@@ -14,7 +14,7 @@ from torch.utils.data import DataLoader, Dataset
 
 
 ROOT = Path(__file__).resolve().parent
-REFERENCE_ROOT = ROOT / "third_party" / "bekd_wscod_reference"
+REFERENCE_ROOT = ROOT / "third_party" / "ucod_mkd_student"
 sys.path.insert(0, str(REFERENCE_ROOT))
 from net import Net  # noqa: E402
 
@@ -37,11 +37,11 @@ class Stage4Dataset(Dataset):
     def __getitem__(self, index):
         record = self.records[index]
         stem = record["image"]
-        image_path = next((self.root / "train" / "Imgs").glob(f"{stem}.*"))
+        image_path = next((self.root / "train" / "Images").glob(f"{stem}.*"))
         image = cv2.cvtColor(cv2.imread(str(image_path)), cv2.COLOR_BGR2RGB).astype(np.float32) / 255.0
         pseudo = cv2.imread(str(self.root / "train" / record["pseudo_label"]), cv2.IMREAD_GRAYSCALE)
-        box_background = cv2.imread(str(self.root / "train" / record["box_background"]), cv2.IMREAD_GRAYSCALE)
-        weight = cv2.imread(str(self.root / "train" / record["pixel_weight"]), cv2.IMREAD_GRAYSCALE)
+        box_background = cv2.imread(str(self.root / "train" / record["reliable_background"]), cv2.IMREAD_GRAYSCALE)
+        weight = cv2.imread(str(self.root / "train" / record["confidence_map"]), cv2.IMREAD_GRAYSCALE)
         image = cv2.resize(image, (512, 512), interpolation=cv2.INTER_LINEAR)
         pseudo = cv2.resize(pseudo, (512, 512), interpolation=cv2.INTER_NEAREST)
         box_background = cv2.resize(box_background, (512, 512), interpolation=cv2.INTER_NEAREST)
@@ -65,9 +65,9 @@ def logits_from_model(model, image):
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--data-dir", type=Path, default=ROOT / "Stage4_Data")
+    parser.add_argument("--data-dir", type=Path, default=ROOT / "Stage_4_Data")
     parser.add_argument("--backbone-path", type=Path, default=None, help="Path to pvt_v2_b4.pth (optional but recommended).")
-    parser.add_argument("--output-dir", type=Path, default=ROOT / "Stage4_Checkpoints")
+    parser.add_argument("--output-dir", type=Path, default=ROOT / "Stage_4_Checkpoints")
     parser.add_argument("--device", default="cuda")
     parser.add_argument("--epochs", type=int, default=60)
     parser.add_argument("--batch-size", type=int, default=8)
