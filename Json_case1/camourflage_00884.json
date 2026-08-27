@@ -1,0 +1,20 @@
+[
+  {
+    "bbox_2d": [
+      67,
+      85,
+      145,
+      198
+    ],
+    "label": "camouflaged penguin"
+  },
+  {
+    "bbox_2d": [
+      217,
+      85,
+      294,
+      230
+    ],
+    "label": "camouflaged penguin"
+  }
+]
