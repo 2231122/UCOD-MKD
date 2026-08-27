@@ -7,6 +7,7 @@ This repository implements a four-stage camouflaged object segmentation and stud
 3. **Stage 3** quality-tiers the SAM masks using candidate similarity, edge truncation, and fragmentation.
 4. **Stage 4** prepares BeKD-style pseudo-label, pixel-confidence, and box-exterior background supervision, then trains a COD student network.
 
+[[Pre_Map](https://drive.google.com/drive/folders/15HdilR7hWewk1rEqJOy3T_4URojImw-a?usp=drive_link)]
 ## Repository Layout
 
 ```text
