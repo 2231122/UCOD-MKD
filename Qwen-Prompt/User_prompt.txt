@@ -1,0 +1,23 @@
+Let's think step by step.
+
+STEP 1. Observe the overall layout of the image to determine the scene depicted. Consider the animal species likely to appear in such a scenario.
+
+STEP 2. Use the clues from STEP 1 to find all animal objects in the image.
+
+STEP 3. Based on the following conditions, focus on the animal objects found in STEP2.
+
+- Only one camouflaged animal exists, blending with its surroundings in color, texture, and patterns. Focus on it.
+
+- Multiple species are present. Focus on the most camouflaged one.
+
+- If the image contains only non-camouflaged animals, the system must still treat them as camouflaged targets for focus. 
+
+STEP 4. For the camouflaged object identified in STEP 3, focus on the following key features: 
+
+- Size.
+
+- Shape.
+
+- Boundary:Carefully examine the boundary between the target and background.
+
+STPE 5. Detect all camouflaged objects in the image, locate their positions using the bounding boxes, and return the coordinates of all bboxes in JSON format, without outputting the ```json```.
